@@ -26,6 +26,10 @@ Print jobs run by the `clang` and `swiftc` drivers respectively. For example thi
 
 Build fat binaries, for example: `--ios_multi_cpus=armv7,arm64`
 
-###### `--apple_platform_type`
+###### `--apple_platform_type` [undocumented]
 
-TBD
+Build for a specific platform when none of the targets specify one. This is necessary when testing a  `swift_test` on macOS, because Bazel assumes iOS. See [bazelbuild/rules_swift#51](https://github.com/bazelbuild/rules_swift/issues/51) for complete details.
+
+```
+bazel test //foo:foo_tests --apple_platform_type=macos
+```
