@@ -1,3 +1,7 @@
+# Useful Flags
+
+Bazel has hundreds of flags, but many are not relevant to iOS. This file shows some of the more useful ones to know and use for iOS. For the full list, see: https://docs.bazel.build/versions/master/command-line-reference.html
+
 ### General
 
 ###### `--subcommands` (`-s`)
