@@ -22,7 +22,7 @@ def _zip_swift_arg(module_name, swift_identifier, input_file):
     )
 
 def _prebuilt_swift_static_framework_impl(ctx):
-    module_name = ctx.label.name
+    module_name = ctx.attr.framework_name
     fat_file = ctx.outputs.fat_file
 
     input_archives = []
@@ -71,6 +71,7 @@ def _prebuilt_swift_static_framework_impl(ctx):
 _prebuilt_swift_static_framework = rule(
     implementation = _prebuilt_swift_static_framework_impl,
     attrs = {
+        "framework_name": attr.string(mandatory = True),
         "deps": attr.label_list(
             mandatory = True,
             providers = [SwiftInfo],
@@ -94,15 +95,15 @@ _prebuilt_swift_static_framework = rule(
 
 def prebuilt_swift_static_framework(name, srcs = [], deps = []):
     srcs = srcs or native.glob(["Sources/**/*.swift"])
-    library_name = name + "Library"
     swift_library(
-        name = library_name,
+        name = name,
         module_name = name,
         srcs = srcs,
         deps = deps,
     )
 
     _prebuilt_swift_static_framework(
-        name = name,
-        deps = [":" + library_name],
+        name = name + "Framework",
+        framework_name = name,
+        deps = [":" + name],
     )
