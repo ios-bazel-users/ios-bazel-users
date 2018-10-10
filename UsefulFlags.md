@@ -33,3 +33,7 @@ Build for a specific platform when none of the targets specify one. This is nece
 ```
 bazel test //foo:foo_tests --apple_platform_type=macos
 ```
+
+###### `--xcode_version`
+
+Select the version of Xcode to use. Bazel auto-discovers installed versions of Xcode. If you've recently installed a version of Xcode that Bazel can't find with `--xcode_version`, you might have to restart the daemon by running `bazel clean --expunge`.
