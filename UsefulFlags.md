@@ -22,7 +22,16 @@ Print jobs run by the `clang` and `swiftc` drivers respectively. For example thi
 
 ###### `--experimental_generate_json_trace_profile`
 
-Run `bazel build` with this flag to generate a Chrome compatible trace file that can be used to visually introspect the build's timing, sequencing, and parallelism. See chrome://tracing
+Run `bazel build` with this flag to generate a Chrome compatible trace file that can be used to visually introspect the build's timing, sequencing, and parallelism. This flag requires the use of `--profile=<path>`, for example:
+
+```sh
+bazel build \
+  --experimental_generate_json_trace_profile \
+  --profile=path/to/trace.json \
+  //some/build:target
+```
+
+See also chrome://tracing
 
 ### iOS
 
