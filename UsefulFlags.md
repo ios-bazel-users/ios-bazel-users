@@ -30,7 +30,7 @@ bazel build \
   --profile=path/to/trace.json \
   //some/build:target
 ```
-
+See also chrome://tracing
 
 ###### `--experimental_show_artifacts`
 
@@ -88,7 +88,7 @@ Retry remote cache / execution actions if there is an errors when building again
 
 ###### `--experimental_multi_threaded_digest`
 
-By default, Bazel has a serial queue for generating digests for build actions (hashes for the remote cache). This flag is recommended to enable if you're building on SSDs since it will allow hashes to be constructed quicker. 
+By default, Bazel has a serial queue for generating digests for build actions (hashes for the remote cache). This flag is recommended to enable if you're building on SSDs since it will allow hashes to be constructed quicker.
 
 ###### `--remote_local_fallback=true`
 
