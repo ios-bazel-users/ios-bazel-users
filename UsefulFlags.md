@@ -30,8 +30,19 @@ bazel build \
   --profile=path/to/trace.json \
   //some/build:target
 ```
-
 See also chrome://tracing
+
+###### `--experimental_show_artifacts`
+
+Print the file paths to outputs created during `bazel build`. This is useful for inspecting outputs or building scripts that process outputs after the build.
+
+###### `--keep_going=true`
+
+Continue the build even if an error occurs. This is helpful in scenarios where you might want all the errors at once to address rather than a rebuild after addressing individual errors.
+
+###### `--verbose_failures`
+
+Bazel can sometimes fail with little to no information about the error. This will print verbose errors in the event of a build failure.
 
 ### iOS
 
@@ -50,3 +61,43 @@ bazel test //foo:foo_tests --apple_platform_type=macos
 ###### `--xcode_version`
 
 Select the version of Xcode to use. Bazel auto-discovers installed versions of Xcode. If you've recently installed a version of Xcode that Bazel can't find with `--xcode_version`, you might have to restart the daemon by running `bazel clean --expunge`.
+
+###### `--objc_enable_binary_stripping=true`
+
+Strips dead symbols from `objc_binary` outputs. This flag only takes effect if you are building your application with `--compilation_mode=opt` and is a link-time optimization. It tells bazel to pass the `-dead-strip` flag at link time. If you are statically linking your entire application this can greatly reduce your binary size.
+
+
+### Remote Caching
+> More information here: https://docs.bazel.build/versions/master/remote-caching.html
+
+###### `--remote_http_cache=http://url/to/cache/server:port`
+
+Specify the URL / port for the remote cache server over `http`.
+
+###### `--remote_upload_local_results=true`
+
+This controls whether or not local action outputs are uploaded to the remote cache. A common strategy is to allow CI machines / Build farms to populate caches and local developer machines will be read-only. The rationale is that the local developer workflow generates outputs that are likely not consumed by other builds until it is in the form of a PR or has been committed.
+
+###### `--experimental_strict_action_env`
+
+Forces developers to declare the environment variables / values at BUILD time. This is essential for getting cache hits since common variables like `$PATH` can differ amongst machines and will result in a cache miss.
+
+###### `--experimental_remote_retry=true`
+
+Retry remote cache / execution actions if there is an errors when building against a remote cache or build farm.
+
+###### `--experimental_multi_threaded_digest`
+
+By default, Bazel has a serial queue for generating digests for build actions (hashes for the remote cache). This flag is recommended to enable if you're building on SSDs since it will allow hashes to be constructed quicker.
+
+###### `--remote_local_fallback=true`
+
+Perform a build action locally if its not available on the remote cache.
+
+###### `--spawn_strategy=standalone`
+
+Disable sandboxing for spawn actions. This is required for remote caching.
+
+###### `--genrule_strategy=standalone`
+
+Disable sandboxing for genrule actions. This is required for remote caching.
