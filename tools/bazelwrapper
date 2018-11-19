@@ -25,7 +25,6 @@ BAZEL_VERSION_URL="https://github.com/bazelbuild/bazel/releases/download/${BAZEL
 BAZEL_ROOT="$HOME/.bazelenv/versions/$BAZEL_VERSION"
 BAZEL_PATH="$BAZEL_ROOT/bin/bazel"
 XCODE_SELECT_ENV_PATH="${SCRIPTPATH}/.xcode_select_env"
-LEGACY_BAZEL_PATH="$SCRIPTPATH/../Scripts/bazel/bin/bazel"
 
 BAZEL=""
 
@@ -47,8 +46,6 @@ function install_bazel() {
 # Lastly, check if there is one installed on the path
 if [[ -e "$BAZEL_PATH" ]]; then
   BAZEL="$BAZEL_PATH"
-elif [[ -e "$LEGACY_BAZEL_PATH" ]] && [[ $("$LEGACY_BAZEL_PATH" version | head -n1 | awk '{ print $3 }') == "$BAZEL_VERSION" ]]; then
-  BAZEL="$LEGACY_BAZEL_PATH"
 elif [[ -e $(which bazel) ]] && [[ $($(which bazel) version | head -n1 | awk '{ print $3 }') == "$BAZEL_VERSION" ]]; then
   BAZEL=$(which bazel)
 fi
