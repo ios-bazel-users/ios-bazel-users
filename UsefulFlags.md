@@ -67,7 +67,40 @@ Select the version of Xcode to use. Bazel auto-discovers installed versions of X
 Strips dead symbols from `objc_binary` outputs. This flag only takes effect if you are building your application with `--compilation_mode=opt` and is a link-time optimization. It tells bazel to pass the `-dead-strip` flag at link time. If you are statically linking your entire application this can greatly reduce your binary size.
 
 
-### Remote Caching
+### Build Caching
+
+Bazel supports multiple forms of caching action outputs. The default behavior is to store the outputs of actions locally and replace those outputs when the action changes.
+
+Caches allow you to keep older outputs for actions which is helpful for scenarios like branch switching or CI builds that may be building very different changelists for consecutive jobs.
+
+The two main options right now are local or remote caches. Local caches utlize a disk cache whereas a remote cache is accessible over http or gRPC.
+
+#### General 
+
+###### `--experimental_strict_action_env`
+
+Forces developers to declare the environment variables / values at BUILD time. This is essential for getting cache hits since common variables like `$PATH` can differ amongst machines and will result in a cache miss.
+
+###### `--experimental_multi_threaded_digest`
+
+By default, Bazel has a serial queue for generating digests for build actions (hashes for the remote cache). This flag is recommended to enable if you're building on SSDs since it will allow hashes to be constructed quicker.
+
+###### `--spawn_strategy=standalone`
+
+Disable sandboxing for spawn actions. This is required for remote caching.
+
+###### `--genrule_strategy=standalone`
+
+Disable sandboxing for genrule actions. This is required for remote caching.
+
+#### Local
+
+###### `--disk_cache=/path/to/disk/cache`
+
+Path to a directory where Bazel can read and write actions and action outputs. If the directory does not exist, it will be created.
+
+#### Remote
+
 > More information here: https://docs.bazel.build/versions/master/remote-caching.html
 
 ###### `--remote_http_cache=http://url/to/cache/server:port`
@@ -78,26 +111,10 @@ Specify the URL / port for the remote cache server over `http`.
 
 This controls whether or not local action outputs are uploaded to the remote cache. A common strategy is to allow CI machines / Build farms to populate caches and local developer machines will be read-only. The rationale is that the local developer workflow generates outputs that are likely not consumed by other builds until it is in the form of a PR or has been committed.
 
-###### `--experimental_strict_action_env`
-
-Forces developers to declare the environment variables / values at BUILD time. This is essential for getting cache hits since common variables like `$PATH` can differ amongst machines and will result in a cache miss.
-
 ###### `--experimental_remote_retry=true`
 
 Retry remote cache / execution actions if there is an errors when building against a remote cache or build farm.
 
-###### `--experimental_multi_threaded_digest`
-
-By default, Bazel has a serial queue for generating digests for build actions (hashes for the remote cache). This flag is recommended to enable if you're building on SSDs since it will allow hashes to be constructed quicker.
-
 ###### `--remote_local_fallback=true`
 
 Perform a build action locally if its not available on the remote cache.
-
-###### `--spawn_strategy=standalone`
-
-Disable sandboxing for spawn actions. This is required for remote caching.
-
-###### `--genrule_strategy=standalone`
-
-Disable sandboxing for genrule actions. This is required for remote caching.
