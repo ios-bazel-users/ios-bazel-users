@@ -22,7 +22,6 @@ if [[ ! -x "$bazel_executable" ]]; then
 
   curl \
     --show-error \
-    --silent \
     --location \
     --output "$script_path" \
     "$bazel_version_url"
