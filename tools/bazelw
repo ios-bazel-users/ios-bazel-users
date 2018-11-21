@@ -4,10 +4,10 @@ set -euo pipefail
 
 readonly bazel_version="0.19.0"
 if [[ $OSTYPE == darwin* ]]; then
-  readonly bazel_version_sha="2a3e309fe359bd8beca18b2ab095969208df1c73bc4002d92341d0fff83b4a01"
+  readonly bazel_version_shasum="2a3e309fe359bd8beca18b2ab095969208df1c73bc4002d92341d0fff83b4a01"
   readonly bazel_version_url="https://github.com/bazelbuild/bazel/releases/download/${bazel_version}/bazel-${bazel_version}-installer-darwin-x86_64.sh"
 else
-  readonly bazel_version_sha="b9e988643b10444d6d8eb04461418b7b80e3d171e12d1c8b6e2a50f541e739e7"
+  readonly bazel_version_shasum="b9e988643b10444d6d8eb04461418b7b80e3d171e12d1c8b6e2a50f541e739e7"
   readonly bazel_version_url="https://github.com/bazelbuild/bazel/releases/download/${bazel_version}/bazel-${bazel_version}-installer-linux-x86_64.sh"
 fi
 
@@ -27,7 +27,7 @@ if [[ ! -x "$bazel_executable" ]]; then
     --output "$script_path" \
     "$bazel_version_url"
 
-  if echo "$bazel_version_sha  $script_path" | shasum --check --status; then
+  if echo "$bazel_version_shasum  $script_path" | shasum --check --status; then
     chmod +x "$script_path"
     "$script_path" --prefix="$bazel_root" > /dev/null
   else
