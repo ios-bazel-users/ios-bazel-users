@@ -5,10 +5,10 @@
 # repository. Bazel moves quickly and is not always backwards compatible so the
 # version of bazel each commit builds with is important to preserve history.
 # This script can update bazel version by modifying the BAZEL_VERSION,
-# BAZEL_VERSION_SHA below to the desired release
+# BAZEL_VERSION_SHA below to the desired release (linux and darwin)
 # (https://github.com/bazelbuild/bazel/releases)
 
-set -e
+set -euo pipefail
 
 # Make sure we're in the project root directory.
 SCRIPTPATH="$( cd "$( dirname "${BASH_SOURCE[0]}"  )" && pwd  )"
@@ -19,8 +19,15 @@ trap popd > /dev/null ERR EXIT
 # These are typically posted in groups.google
 # https://groups.google.com/forum/#!forum/bazel-discuss
 BAZEL_VERSION="0.19.2"
-BAZEL_VERSION_SHA="25ea85d4974ead87a7600e17b733bf8035a075fc8671c97e1c1f7dc8ff304231"
-BAZEL_VERSION_URL="https://github.com/bazelbuild/bazel/releases/download/${BAZEL_VERSION}/bazel-${BAZEL_VERSION}-installer-darwin-x86_64.sh"
+if [[ $OSTYPE == darwin* ]]; then
+    TARGET_PLATFORM="darwin"
+    BAZEL_VERSION_SHA="25ea85d4974ead87a7600e17b733bf8035a075fc8671c97e1c1f7dc8ff304231"
+else
+    TARGET_PLATFORM="linux"
+    BAZEL_VERSION_SHA="42ba631103011594cdf5591ef07658a9e9a5d73c5ee98a9f09651ac4ac535d8c"
+fi
+
+BAZEL_VERSION_URL="https://github.com/bazelbuild/bazel/releases/download/${BAZEL_VERSION}/bazel-${BAZEL_VERSION}-installer-${TARGET_PLATFORM}-x86_64.sh"
 
 BAZEL_ROOT="$HOME/.bazelenv/versions/$BAZEL_VERSION"
 BAZEL_PATH="$BAZEL_ROOT/bin/bazel"
@@ -35,7 +42,9 @@ function install_bazel() {
         chmod +x install_bazel.sh
         $PWD/install_bazel.sh --prefix="$BAZEL_ROOT" && rm install_bazel.sh
     else
-        echo "You version of bazel is out of date; ask for help in #cx-ios"
+        echo "Bazel version does not match expected shasum"
+        echo "Expected: ${BAZEL_VERSION_SHA}"
+        echo "Actual: ${SHA}"
         exit 1
     fi
 }
@@ -52,7 +61,7 @@ fi
 
 # Ensure we can execute the path for bazel and that it's the correct version
 if ! [[ -e "$BAZEL" ]]; then
-  echo "WARNING: Missing installation or incorrect bazel version (expecting $BAZEL_VERSION)" >&2;
+  echo "WARNING: Missing installation bazel (expecting version $BAZEL_VERSION)" >&2;
   echo "Installing Bazel $BAZEL_VERSION to $BAZEL_PATH" >&2;
   install_bazel
   BAZEL=$BAZEL_PATH
@@ -90,8 +99,9 @@ if [[ -x "${BAZEL}" ]]; then
       fi
   done
 
-  exec -a "$0" /usr/bin/env - TERM=$TERM SHELL=$SHELL PATH=$PATH HOME=$HOME "${BAZEL}" "${ARGS[@]}"
+  # Run Bazel Invocation
+  exec "${BAZEL}" "$@"
 else
-  echo "WARNING: Missing installation of bazel" >&2;
+  echo "WARNING: Missing installation of bazel (version ${BAZEL_VERSION})" >&2;
   exit 1
 fi
