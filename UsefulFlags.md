@@ -62,10 +62,14 @@ bazel test //foo:foo_tests --apple_platform_type=macos
 
 Select the version of Xcode to use. Bazel auto-discovers installed versions of Xcode. If you've recently installed a version of Xcode that Bazel can't find with `--xcode_version`, you might have to restart the daemon by running `bazel clean --expunge`.
 
-###### `--objc_enable_binary_stripping=true`
+###### `--objc_enable_binary_stripping=true` and `--features=dead_strip`
 
-Strips dead symbols from `objc_binary` outputs. This flag only takes effect if you are building your application with `--compilation_mode=opt` and is a link-time optimization. It tells bazel to pass the `-dead-strip` flag at link time. If you are statically linking your entire application this can greatly reduce your binary size.
+Strips unreachable functions and data from the final binary. These flags tell bazel to pass the `-dead-strip` flag at link time. If you are statically linking your entire application this can greatly reduce your binary size.
 
+* For `objc_binary`, use `--objc_enable_binary_stripping=true`
+* For `swift_binary`, use `--features=dead_strip`
+
+The `--objc_enable_binary_stripping` flag only takes effect if you are building your application with `--compilation_mode=opt` and is a link-time optimization.
 
 ### Build Caching
 
