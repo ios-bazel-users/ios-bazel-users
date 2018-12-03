@@ -64,7 +64,7 @@ Select the version of Xcode to use. Bazel auto-discovers installed versions of X
 
 ###### `--objc_enable_binary_stripping=true` and `--features=dead_strip`
 
-Strips unreachable functions and data from the final binary. These flags tell bazel to pass the `-dead-strip` flag at link time. If you are statically linking your entire application this can greatly reduce your binary size.
+Strips unreachable functions and data from the final binary. These flags tell bazel to pass the `-dead_strip` flag at link time. If you are statically linking your entire application this can greatly reduce your binary size.
 
 * For `objc_binary`, use `--objc_enable_binary_stripping=true`
 * For `swift_binary`, use `--features=dead_strip`
