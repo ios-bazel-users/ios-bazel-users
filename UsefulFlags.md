@@ -93,10 +93,6 @@ By default, Bazel has a serial queue for generating digests for build actions (h
 
 Disable sandboxing for spawn actions. This is required for remote caching.
 
-###### `--genrule_strategy=standalone`
-
-Disable sandboxing for genrule actions. This is required for remote caching.
-
 #### Local
 
 ###### `--disk_cache=/path/to/disk/cache`
