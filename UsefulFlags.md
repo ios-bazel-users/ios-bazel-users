@@ -91,7 +91,7 @@ By default, Bazel has a serial queue for generating digests for build actions (h
 
 ###### `--spawn_strategy=standalone`
 
-Disable sandboxing for spawn actions. This is required for remote caching.
+Disable sandboxing for all actions. This can improve build performance significantly on macOS.
 
 #### Local
 
