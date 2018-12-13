@@ -71,6 +71,10 @@ Strips unreachable functions and data from the final binary. These flags tell ba
 
 The `--objc_enable_binary_stripping` flag only takes effect if you are building your application with `--compilation_mode=opt` and is a link-time optimization.
 
+##### `--features=swift.use_global_module_cache`
+
+Make all swiftc invocations use the same module cache. Otherwise each invocation has to generate its own cache which can be very expensive for many invocations.
+
 ### Build Caching
 
 Bazel supports multiple forms of caching action outputs. The default behavior is to store the outputs of actions locally and replace those outputs when the action changes.
