@@ -18,4 +18,4 @@ Xcode Index Files
 
 Xcode stores index files for code completion and general navigation. A good explanation of how this works
 is in [this video](https://www.youtube.com/watch?v=jGJhnIT-D2M). If you need to dump the index files, 
-follow the instructions on [this gist](https://www.youtube.com/watch?v=jGJhnIT-D2M)
+follow the instructions on [this gist](https://gist.github.com/kastiglione/fd9516db3cc93c9bdbeb5665f7d49985).
