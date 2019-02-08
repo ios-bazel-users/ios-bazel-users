@@ -21,6 +21,7 @@ flags for some targets, especially if the flags vary by architecture
 - This causes a warning since bazel unconditionally passes
   `-headerpad_max_install_names`, so you cannot use `-fatal_warnings`
 - This doesn't solve passing the correct compiler flags to support
-  bitcode. If you're using Swift this is solved by rules_swift https://github.com/bazelbuild/rules_swift/blob/f27ba20590e8a2b1d14e1506fbec48996de5ac62/swift/internal/xcode_swift_toolchain.bzl#L124-L131
+  bitcode. If you're using Swift this is [solved by
+  rules_swift](https://github.com/bazelbuild/rules_swift/blob/f27ba20590e8a2b1d14e1506fbec48996de5ac62/swift/internal/xcode_swift_toolchain.bzl#L124-L131)
   but if you're using a different language you'll need to pass
   `--copt=-fembed-bitcode` wherever you pass `--apple_bitcode=embedded`
