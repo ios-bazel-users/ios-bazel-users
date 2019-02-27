@@ -62,6 +62,10 @@ bazel test //foo:foo_tests --apple_platform_type=macos
 
 Select the version of Xcode to use. Bazel auto-discovers installed versions of Xcode. If you've recently installed a version of Xcode that Bazel can't find with `--xcode_version`, you might have to restart the daemon by running `bazel clean --expunge`.
 
+###### `--xcode_version_config=<label>`
+
+Pass the Xcode configuration so that bazel doesn't have to fetch it. By default bazel queries your system to determine what Xcode versions are available. This can lead to [issues](https://github.com/bazelbuild/bazel/issues/6056) where you have to run a `bazel clean --expunge` to recover. If you can guarantee that all users of your bazel configuration have the same version of Xcode, you can copy the output from `cat "$(bazel info execution_root)"/external/local_config_xcode/BUILD` and check it in to your repo. This way bazel won't have to fetch this information.
+
 ###### `--objc_enable_binary_stripping=true` and `--features=dead_strip`
 
 Strips unreachable functions and data from the final binary. These flags tell bazel to pass the `-dead_strip` flag at link time. If you are statically linking your entire application this can greatly reduce your binary size.
