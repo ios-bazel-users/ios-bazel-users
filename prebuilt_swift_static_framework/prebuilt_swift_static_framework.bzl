@@ -31,12 +31,12 @@ def _prebuilt_swift_static_framework_impl(ctx):
 
     for platform, deps in ctx.split_attr.deps.items():
         swiftmodule_identifier = _PLATFORM_TO_SWIFTMODULE[platform]
+        library = archive[CcInfo].linking_context.libraries_to_link[0].pic_static_library
         swift_info = deps[0][SwiftInfo]
-        archive = swift_info.direct_libraries[0]
         swiftdoc = swift_info.direct_swiftdocs[0]
         swiftmodule = swift_info.direct_swiftmodules[0]
 
-        input_archives.append(archive)
+        input_archives.append(library)
         input_modules_docs += [swiftdoc, swiftmodule]
         zip_args += [
             _zip_swift_arg(module_name, swiftmodule_identifier, swiftdoc),
@@ -74,7 +74,7 @@ _prebuilt_swift_static_framework = rule(
         "framework_name": attr.string(mandatory = True),
         "deps": attr.label_list(
             mandatory = True,
-            providers = [SwiftInfo],
+            providers = [CcInfo, SwiftInfo],
             cfg = apple_common.multi_arch_split,
         ),
         "platform_type": attr.string(
