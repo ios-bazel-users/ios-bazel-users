@@ -29,10 +29,10 @@ def _prebuilt_swift_static_framework_impl(ctx):
     input_modules_docs = []
     zip_args = [_zip_binary_arg(module_name, fat_file)]
 
-    for platform, deps in ctx.split_attr.deps.items():
+    for platform, archive in ctx.split_attr.archive.items():
         swiftmodule_identifier = _PLATFORM_TO_SWIFTMODULE[platform]
         library = archive[CcInfo].linking_context.libraries_to_link[0].pic_static_library
-        swift_info = deps[0][SwiftInfo]
+        swift_info = archive[SwiftInfo]
         swiftdoc = swift_info.direct_swiftdocs[0]
         swiftmodule = swift_info.direct_swiftmodules[0]
 
@@ -52,44 +52,44 @@ def _prebuilt_swift_static_framework_impl(ctx):
         arguments = ["-create", "-output", fat_file.path] + [x.path for x in input_archives],
     )
 
-    output_zip = ctx.outputs.output_zip
+    output_file = ctx.outputs.output_file
     ctx.actions.run(
         inputs = input_modules_docs + [fat_file],
-        outputs = [output_zip],
+        outputs = [output_file],
         mnemonic = "CreateSwiftFrameworkZip",
         progress_message = "Creating framework zip for {}".format(module_name),
         executable = ctx.executable._zipper,
-        arguments = ["c", output_zip.path] + zip_args,
+        arguments = ["c", output_file.path] + zip_args,
     )
 
     return [
         DefaultInfo(
-            files = depset([output_zip]),
+            files = depset([output_file]),
         ),
     ]
 
 _prebuilt_swift_static_framework = rule(
     implementation = _prebuilt_swift_static_framework_impl,
-    attrs = {
-        "framework_name": attr.string(mandatory = True),
-        "deps": attr.label_list(
+    attrs = dict(
+        archive = attr.label(
             mandatory = True,
             providers = [CcInfo, SwiftInfo],
             cfg = apple_common.multi_arch_split,
         ),
-        "platform_type": attr.string(
+        framework_name = attr.string(mandatory = True),
+        minimum_os_version = attr.string(default = "10.0"),
+        platform_type = attr.string(
             default = str(apple_common.platform_type.ios),
         ),
-        "minimum_os_version": attr.string(default = "10.0"),
-        "_zipper": attr.label(
+        _zipper: attr.label(
             default = "@bazel_tools//tools/zip:zipper",
             cfg = "host",
             executable = True,
         ),
-    },
+    ),
     outputs = {
-        "fat_file": "%{name}.fat",
-        "output_zip": "%{name}.zip",
+        "fat_file": "%{framework_name}.fat",
+        "output_file": "%{framework_name}.zip",
     },
 )
 
