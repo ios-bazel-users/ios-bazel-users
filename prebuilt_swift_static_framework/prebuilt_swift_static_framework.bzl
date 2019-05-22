@@ -81,7 +81,7 @@ _prebuilt_swift_static_framework = rule(
         platform_type = attr.string(
             default = str(apple_common.platform_type.ios),
         ),
-        _zipper: attr.label(
+        _zipper = attr.label(
             default = "@bazel_tools//tools/zip:zipper",
             cfg = "host",
             executable = True,
@@ -105,5 +105,5 @@ def prebuilt_swift_static_framework(name, srcs = [], deps = []):
     _prebuilt_swift_static_framework(
         name = name + "Framework",
         framework_name = name,
-        deps = [":" + name],
+        archive = name,
     )
