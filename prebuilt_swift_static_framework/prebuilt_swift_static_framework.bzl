@@ -88,8 +88,8 @@ _prebuilt_swift_static_framework = rule(
         ),
     ),
     outputs = {
-        "fat_file": "%{framework_name}.fat",
-        "output_file": "%{framework_name}.zip",
+        "fat_file": "%{name}.fat",
+        "output_file": "%{name}.zip",
     },
 )
 
