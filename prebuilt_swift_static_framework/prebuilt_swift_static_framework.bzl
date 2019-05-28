@@ -108,7 +108,7 @@ _prebuilt_swift_static_framework = rule(
             cfg = apple_common.multi_arch_split,
         ),
         module_name = attr.string(mandatory = True),
-        minimum_os_version = attr.string(default = _DEFAULT_MINIMUM_OS_VERSION),
+        minimum_os_version = attr.string(mandatory = True),
         platform_type = attr.string(
             default = str(apple_common.platform_type.ios),
         ),
@@ -138,7 +138,7 @@ def prebuilt_swift_static_framework(name, srcs = [], deps = [], **kwargs):
     Args:
       name: Name of the `swift_library` that the framework depends on.
       srcs: The Swift source files to compile. If no srcs are provided, it's
-          assumed that the Swift srcs are located in `Sources` directory.
+          assumed that source files are located in the `Sources` directory.
       deps: Dependencies of the `swift_library` target being compiled.
       **kwargs: Additional arguments to pass to this rule, such as `testonly`,
           `module_name`, `minimum_os_version`, `visibility`, etc.
@@ -146,6 +146,7 @@ def prebuilt_swift_static_framework(name, srcs = [], deps = [], **kwargs):
     module_name = kwargs.get("module_name", name)
     srcs = srcs or native.glob(["Sources/**/*.swift"])
     testonly = kwargs.get("testonly", False)
+    minimum_os_version = kwargs.get("minimum_os_version", _DEFAULT_MINIMUM_OS_VERSION)
     visibility = kwargs.get("visibility")
     swift_library(
         name = name,
@@ -161,6 +162,6 @@ def prebuilt_swift_static_framework(name, srcs = [], deps = [], **kwargs):
         testonly = testonly,
         module_name = module_name,
         archive = name,
-        minimum_os_version = kwargs.get("minimum_os_version"),
+        minimum_os_version = minimum_os_version,
         visibility = visibility,
     )
