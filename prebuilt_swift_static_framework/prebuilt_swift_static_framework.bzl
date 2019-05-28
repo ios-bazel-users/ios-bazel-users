@@ -128,8 +128,8 @@ def prebuilt_swift_static_framework(name, srcs = [], deps = [], **kwargs):
     """Builds and bundles an iOS Swift static framework for third-party distribution.
 
     This rule supports building the following:
-        $ blaze build SwiftLibrary (builds a `swift_library` that other targets can depend on)
-        $ blaze build SwiftLibraryFramework (builds an iOS Swift static framework)
+        $ bazel build SwiftLibrary (builds a `swift_library` that other targets can depend on)
+        $ bazel build SwiftLibraryFramework (builds an iOS Swift static framework)
 
     To build for multiple architectures, specify the list of architectures to
     build the framework with: `--ios_multi_cpus=i386,x86_64,armv7,arm64`. If no
