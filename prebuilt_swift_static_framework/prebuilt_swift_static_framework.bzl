@@ -53,7 +53,7 @@ def _prebuilt_swift_static_framework_impl(ctx):
 
     zip_args = [
         _zip_binary_arg(module_name, fat_file),
-        _zip_generated_objc_hdr_arg(module_name, generated_objc_hdr_file)
+        _zip_generated_objc_hdr_arg(module_name, generated_objc_hdr_file),
     ]
 
     # Get the `swiftdoc` and `swiftmodule` files for each iOS platform.
