@@ -1,6 +1,8 @@
 """Bazel rule for creating a multi-architecture iOS static framework for a Swift module."""
 
+load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
 load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftInfo", "swift_library")
+load("@bazel_skylib//lib:dicts.bzl", "dicts")
 
 _DEFAULT_MINIMUM_OS_VERSION = "10.0"
 
@@ -74,12 +76,13 @@ def _prebuilt_swift_static_framework_impl(ctx):
             _zip_swift_arg(module_name, swiftmodule_identifier, swiftmodule),
         ]
 
-    ctx.actions.run(
+    apple_support.run(
+        ctx,
         inputs = input_libraries,
         outputs = [fat_file],
         mnemonic = "LipoSwiftLibraries",
         progress_message = "Combining libraries for {}".format(module_name),
-        executable = "lipo",
+        executable = "/usr/bin/lipo",
         arguments = ["-create", "-output", fat_file.path] + [x.path for x in input_libraries],
     )
 
@@ -101,7 +104,7 @@ def _prebuilt_swift_static_framework_impl(ctx):
 
 _prebuilt_swift_static_framework = rule(
     implementation = _prebuilt_swift_static_framework_impl,
-    attrs = dict(
+    attrs = dicts.add(apple_support.action_required_attrs(), dict(
         archive = attr.label(
             mandatory = True,
             providers = [CcInfo, SwiftInfo],
@@ -117,7 +120,8 @@ _prebuilt_swift_static_framework = rule(
             cfg = "host",
             executable = True,
         ),
-    ),
+    )),
+    fragments = ["apple"],
     outputs = {
         "fat_file": "%{name}.fat",
         "output_file": "%{name}.zip",
