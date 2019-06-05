@@ -155,10 +155,11 @@ def prebuilt_swift_static_framework(name, srcs = [], deps = [], **kwargs):
     swift_library(
         name = name,
         testonly = testonly,
-        module_name = module_name,
         srcs = srcs,
-        deps = deps,
+        copts = kwargs.get("copts"),
+        module_name = module_name,
         visibility = visibility,
+        deps = deps,
     )
 
     _prebuilt_swift_static_framework(
