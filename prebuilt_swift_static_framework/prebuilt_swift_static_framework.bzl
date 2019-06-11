@@ -48,8 +48,9 @@ def _prebuilt_swift_static_framework_impl(ctx):
 
     # Get the generated Objective-C header file for the `swift_library`.
     objc_provider = swift_library_target[apple_common.Objc]
+    generated_hdr_file_basename = swift_library_target.label.name + "-Swift.h"
     for objc_hdr_file in objc_provider.header.to_list():
-        if swift_library_target.label.name in objc_hdr_file.basename:
+        if objc_hdr_file.basename == generated_hdr_file_basename:
             generated_objc_hdr_file = objc_hdr_file
             break
 
