@@ -65,7 +65,11 @@ def _prebuilt_swift_static_framework_impl(ctx):
         if not swiftmodule_identifier:
             continue
 
-        library = target[CcInfo].linking_context.libraries_to_link[0].pic_static_library
+        # Bazel 0.27 changed `libraries_to_link` from a list to a `depset`.
+        libraries_to_link = target[CcInfo].linking_context.libraries_to_link
+        if hasattr(libraries_to_link, "to_list"):
+            libraries_to_link = libraries_to_link.to_list()
+        library = libraries_to_link[0].pic_static_library
         input_libraries.append(library)
 
         swift_info_provider = target[SwiftInfo]
