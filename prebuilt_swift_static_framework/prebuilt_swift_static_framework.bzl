@@ -1,8 +1,7 @@
-"""Bazel rule for creating a multi-architecture iOS static framework for a Swift module."""
+"""Bazel rule for creating a multi-architecture static framework for a Swift module."""
 
 load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
 load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftInfo", "swift_library")
-load("@bazel_skylib//lib:dicts.bzl", "dicts")
 
 _DEFAULT_MINIMUM_OS_VERSION = "10.0"
 
@@ -47,19 +46,20 @@ def _prebuilt_swift_static_framework_impl(ctx):
     swift_library_target = platform_to_target_list[0][1]
 
     # Get the generated Objective-C header file for the `swift_library`.
-    objc_provider = swift_library_target[apple_common.Objc]
-    generated_hdr_file_basename = swift_library_target.label.name + "-Swift.h"
-    for objc_hdr_file in objc_provider.header.to_list():
-        if objc_hdr_file.basename == generated_hdr_file_basename:
-            generated_objc_hdr_file = objc_hdr_file
-            break
+    if apple_common.Objc in swift_library_target:
+        objc_provider = swift_library_target[apple_common.Objc]
+        generated_hdr_file_basename = swift_library_target.label.name + "-Swift.h"
+        for objc_hdr_file in objc_provider.header.to_list():
+            if objc_hdr_file.basename == generated_hdr_file_basename:
+                generated_objc_hdr_file = objc_hdr_file
+                break
 
     zip_args = [
         _zip_binary_arg(module_name, fat_file),
         _zip_generated_objc_hdr_arg(module_name, generated_objc_hdr_file),
     ]
 
-    # Get the `swiftdoc` and `swiftmodule` files for each iOS platform.
+    # Get the `swiftdoc` and `swiftmodule` files for each platform.
     for platform, target in platform_to_target_list:
         swiftmodule_identifier = _PLATFORM_TO_SWIFTMODULE[platform]
         if not swiftmodule_identifier:
@@ -87,8 +87,8 @@ def _prebuilt_swift_static_framework_impl(ctx):
         outputs = [fat_file],
         mnemonic = "LipoSwiftLibraries",
         progress_message = "Combining libraries for {}".format(module_name),
-        executable = "/usr/bin/lipo",
-        arguments = ["-create", "-output", fat_file.path] + [x.path for x in input_libraries],
+        executable = "/usr/bin/xcrun",
+        arguments = ["lipo", "-create", "-output", fat_file.path] + [x.path for x in input_libraries],
     )
 
     output_file = ctx.outputs.output_file
@@ -109,7 +109,7 @@ def _prebuilt_swift_static_framework_impl(ctx):
 
 _prebuilt_swift_static_framework = rule(
     implementation = _prebuilt_swift_static_framework_impl,
-    attrs = dicts.add(apple_support.action_required_attrs(), dict(
+    attrs = dict(apple_support.action_required_attrs(),
         archive = attr.label(
             mandatory = True,
             providers = [CcInfo, SwiftInfo],
@@ -125,7 +125,7 @@ _prebuilt_swift_static_framework = rule(
             cfg = "host",
             executable = True,
         ),
-    )),
+    ),
     fragments = ["apple"],
     outputs = {
         "fat_file": "%{name}.fat",
@@ -134,11 +134,11 @@ _prebuilt_swift_static_framework = rule(
 )
 
 def prebuilt_swift_static_framework(name, srcs = [], deps = [], **kwargs):
-    """Builds and bundles an iOS Swift static framework for third-party distribution.
+    """Builds and bundles a Swift static framework for third-party distribution.
 
     This rule supports building the following:
         $ bazel build SwiftLibrary (builds a `swift_library` that other targets can depend on)
-        $ bazel build SwiftLibraryFramework (builds an iOS Swift static framework)
+        $ bazel build SwiftLibraryFramework (builds a Swift static framework)
 
     To build for multiple architectures, specify the list of architectures to
     build the framework with: `--ios_multi_cpus=i386,x86_64,armv7,arm64`. If no
@@ -146,11 +146,17 @@ def prebuilt_swift_static_framework(name, srcs = [], deps = [], **kwargs):
 
     Args:
       name: Name of the `swift_library` that the framework depends on.
-      srcs: The Swift source files to compile. If no srcs are provided, it's
-          assumed that source files are located in the `Sources` directory.
+      srcs: The Swift source files to compile. If not provided, it's assumed
+          that source files are located in a `Sources` directory.
       deps: Dependencies of the `swift_library` target being compiled.
-      **kwargs: Additional arguments to pass to this rule, such as `testonly`,
-          `module_name`, `minimum_os_version`, `visibility`, etc.
+      **kwargs: Additional arguments supported by this rule:
+          copts: Additional compiler options that should be passed to `swiftc`.
+          module_name: The name of the Swift module being built. If not
+              provided, the `name` is used.
+          minimum_os_version: The minimum OS version supported by the framework.
+          testonly: If `True`, only testonly targets (such as tests) can depend
+              on the `swift_library` target. The default is `False`.
+          visibility: The visibility specifications for this target.
     """
     module_name = kwargs.get("module_name", name)
     srcs = srcs or native.glob(["Sources/**/*.swift"])
