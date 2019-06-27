@@ -39,7 +39,7 @@ def _prebuilt_swift_static_framework_impl(ctx):
     zip_args = [_zip_binary_arg(module_name, fat_file)]
 
     libraries = []
-    swift_info = []
+    swift_info_files = []
     generated_objc_hdr_file = None
 
     # The Swift static framework has only one `swift_library` dependency target.
@@ -72,7 +72,7 @@ def _prebuilt_swift_static_framework_impl(ctx):
         swift_info_provider = target[SwiftInfo]
         swiftdoc = swift_info_provider.direct_swiftdocs[0]
         swiftmodule = swift_info_provider.direct_swiftmodules[0]
-        swift_info += [swiftdoc, swiftmodule]
+        swift_info_files += [swiftdoc, swiftmodule]
         zip_args += [
             _zip_swift_arg(module_name, swiftmodule_identifier, swiftdoc),
             _zip_swift_arg(module_name, swiftmodule_identifier, swiftmodule),
@@ -93,7 +93,7 @@ def _prebuilt_swift_static_framework_impl(ctx):
         input_files.append(generated_objc_hdr_file)
     output_file = ctx.outputs.output_file
     ctx.actions.run(
-        inputs = swift_info + input_files,
+        inputs = swift_info_files + input_files,
         outputs = [output_file],
         mnemonic = "CreateSwiftFrameworkZip",
         progress_message = "Creating framework zip for {}".format(module_name),
