@@ -36,9 +36,10 @@ def _zip_generated_objc_hdr_arg(module_name, generated_objc_hdr_file):
 def _prebuilt_swift_static_framework_impl(ctx):
     module_name = ctx.attr.module_name
     fat_file = ctx.outputs.fat_file
+    zip_args = [_zip_binary_arg(module_name, fat_file)]
 
-    input_libraries = []
-    input_swift_info = []
+    libraries = []
+    swift_info = []
     generated_objc_hdr_file = None
 
     # The Swift static framework has only one `swift_library` dependency target.
@@ -52,12 +53,8 @@ def _prebuilt_swift_static_framework_impl(ctx):
         for objc_hdr_file in objc_provider.header.to_list():
             if objc_hdr_file.basename == generated_hdr_file_basename:
                 generated_objc_hdr_file = objc_hdr_file
+                zip_args.append(_zip_generated_objc_hdr_arg(module_name, generated_objc_hdr_file))
                 break
-
-    zip_args = [
-        _zip_binary_arg(module_name, fat_file),
-        _zip_generated_objc_hdr_arg(module_name, generated_objc_hdr_file),
-    ]
 
     # Get the `swiftdoc` and `swiftmodule` files for each platform.
     for platform, target in platform_to_target_list:
@@ -70,12 +67,12 @@ def _prebuilt_swift_static_framework_impl(ctx):
         if hasattr(libraries_to_link, "to_list"):
             libraries_to_link = libraries_to_link.to_list()
         library = libraries_to_link[0].pic_static_library
-        input_libraries.append(library)
+        libraries.append(library)
 
         swift_info_provider = target[SwiftInfo]
         swiftdoc = swift_info_provider.direct_swiftdocs[0]
         swiftmodule = swift_info_provider.direct_swiftmodules[0]
-        input_swift_info += [swiftdoc, swiftmodule]
+        swift_info += [swiftdoc, swiftmodule]
         zip_args += [
             _zip_swift_arg(module_name, swiftmodule_identifier, swiftdoc),
             _zip_swift_arg(module_name, swiftmodule_identifier, swiftmodule),
@@ -83,17 +80,20 @@ def _prebuilt_swift_static_framework_impl(ctx):
 
     apple_support.run(
         ctx,
-        inputs = input_libraries,
+        inputs = libraries,
         outputs = [fat_file],
         mnemonic = "LipoSwiftLibraries",
         progress_message = "Combining libraries for {}".format(module_name),
-        executable = "/usr/bin/xcrun",
-        arguments = ["lipo", "-create", "-output", fat_file.path] + [x.path for x in input_libraries],
+        executable = "/usr/bin/lipo",
+        arguments = ["-create", "-output", fat_file.path] + [x.path for x in libraries],
     )
 
+    input_files = [fat_file]
+    if generated_objc_hdr_file:
+        input_files.append(generated_objc_hdr_file)
     output_file = ctx.outputs.output_file
     ctx.actions.run(
-        inputs = input_swift_info + [generated_objc_hdr_file, fat_file],
+        inputs = swift_info + input_files,
         outputs = [output_file],
         mnemonic = "CreateSwiftFrameworkZip",
         progress_message = "Creating framework zip for {}".format(module_name),
