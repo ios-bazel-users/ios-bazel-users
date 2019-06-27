@@ -109,7 +109,8 @@ def _prebuilt_swift_static_framework_impl(ctx):
 
 _prebuilt_swift_static_framework = rule(
     implementation = _prebuilt_swift_static_framework_impl,
-    attrs = dict(apple_support.action_required_attrs(),
+    attrs = dict(
+        apple_support.action_required_attrs(),
         archive = attr.label(
             mandatory = True,
             providers = [CcInfo, SwiftInfo],
