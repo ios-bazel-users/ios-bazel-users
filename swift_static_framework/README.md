@@ -1,4 +1,4 @@
-# prebuilt_swift_static_framework
+# swift_static_framework
 
 This is a macro & rule to build multi-architecture (fat) static
 frameworks from Swift sources.
@@ -7,12 +7,12 @@ This example could be updated based on your use case.
 
 ## Usage
 
-You need to include
+You will need to include
 [rules_swift](https://github.com/bazelbuild/rules_swift) in your
-WORKSPACE, then in a BUILD file:
+WORKSPACE. In your BUILD file, define the target:
 
 ```python
-prebuilt_swift_static_framework(
+swift_static_framework(
     name = "Whatever",
     srcs = glob(["path/to/sources/*.swift"]),
     deps = [":SomeDependency"],
@@ -24,15 +24,33 @@ macro doesn't currently support resources, but could be updated to do
 so. Internally this rule creates a `swift_library` and compiles it for
 all the architectures passed with `--ios_multi_cpus`.
 
-To build the framework you need to run `bazel build WhateverFramework`.
-Otherwise you build the underlying `swift_library`. This is so you can
-depend on the `swift_library` from other libraries with the name you
-defined.
+Build the `swift_library` and Swift static framework:
+
+```shell
+$ bazel build WhateverFramework --ios_multi_cpus=i386,x86_64,armv7,arm64
+```
+
+Build the `swift_library` only:
+
+```shell
+$ bazel build Whatever
+```
+
+You can depend on the `swift_library` from other libraries using the
+`swift_static_framework`'s name, for example:
+
+```python
+swift_library(
+    name = "MyLibrary",
+    ...
+    deps = [":Whatever"],
+)
+```
 
 ## Implementation
 
 This works by using bazel's `apple_common.multi_arch_split`
-configuration. This is used in rule's in place of `target` or `host` in
+configuration. This is used in place of `target` or `host` in
 the `cfg` field. When you use this you must provide both a
 `platform_type` which is a type of `apple_common.platform_type` and
 `minimum_os_version`.
