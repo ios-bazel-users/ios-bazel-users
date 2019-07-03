@@ -33,7 +33,7 @@ def _zip_generated_objc_hdr_arg(module_name, generated_objc_hdr_file):
         file_path = generated_objc_hdr_file.path,
     )
 
-def _prebuilt_swift_static_framework_impl(ctx):
+def _swift_static_framework_impl(ctx):
     module_name = ctx.attr.module_name
     fat_file = ctx.outputs.fat_file
     zip_args = [_zip_binary_arg(module_name, fat_file)]
@@ -107,8 +107,8 @@ def _prebuilt_swift_static_framework_impl(ctx):
         ),
     ]
 
-_prebuilt_swift_static_framework = rule(
-    implementation = _prebuilt_swift_static_framework_impl,
+_swift_static_framework = rule(
+    implementation = _swift_static_framework_impl,
     attrs = dict(
         apple_support.action_required_attrs(),
         archive = attr.label(
@@ -134,7 +134,7 @@ _prebuilt_swift_static_framework = rule(
     },
 )
 
-def prebuilt_swift_static_framework(name, srcs = [], deps = [], **kwargs):
+def _swift_static_framework(name, srcs = [], deps = [], **kwargs):
     """Builds and bundles a Swift static framework for third-party distribution.
 
     This rule supports building the following:
@@ -174,7 +174,7 @@ def prebuilt_swift_static_framework(name, srcs = [], deps = [], **kwargs):
         deps = deps,
     )
 
-    _prebuilt_swift_static_framework(
+    _swift_static_framework(
         name = name + "Framework",
         testonly = testonly,
         module_name = module_name,
