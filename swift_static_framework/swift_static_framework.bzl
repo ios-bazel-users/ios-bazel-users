@@ -134,7 +134,7 @@ _swift_static_framework = rule(
     },
 )
 
-def _swift_static_framework(name, srcs = [], deps = [], **kwargs):
+def swift_static_framework(name, srcs = [], deps = [], **kwargs):
     """Builds and bundles a Swift static framework for third-party distribution.
 
     This rule supports building the following:
