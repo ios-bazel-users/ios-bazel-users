@@ -39,6 +39,14 @@ def _zip_modulemap_arg(module_name, modulemap_file):
         file_path = modulemap_file.path,
     )
 
+def _modulemap_file_content(module_name):
+    return """\
+framework module %s {
+  header %s-Swift.h
+  requires objc
+}
+""" % (module_name, module_name)
+
 def _swift_static_framework_impl(ctx):
     module_name = ctx.attr.module_name
     fat_file = ctx.outputs.fat_file
@@ -97,16 +105,9 @@ def _swift_static_framework_impl(ctx):
 
     input_files = [fat_file]
     if generated_objc_hdr_file:
-        modulemap_file_content = """\
-framework module %s {
-  header %s-Swift.h
-  requires objc
-}
-""" % (module_name, module_name)
-
         ctx.actions.write(
             output = modulemap_file,
-            content = modulemap_file_content
+            content = _modulemap_file_content(module_name)
         )
         zip_args.append(_zip_modulemap_arg(module_name, modulemap_file))
 
