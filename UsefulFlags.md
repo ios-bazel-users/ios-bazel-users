@@ -64,7 +64,12 @@ Select the version of Xcode to use. Bazel auto-discovers installed versions of X
 
 ###### `--xcode_version_config=<label>`
 
-Pass the Xcode configuration so that bazel doesn't have to fetch it. By default bazel queries your system to determine what Xcode versions are available. This can lead to [issues](https://github.com/bazelbuild/bazel/issues/6056) where you have to run a `bazel clean --expunge` to recover. If you can guarantee that all users of your bazel configuration have the same version of Xcode, you can copy the output from `cat "$(bazel info execution_root)"/external/local_config_xcode/BUILD` and check it in to your repo. This way bazel won't have to fetch this information.
+Pass the Xcode configuration so that bazel doesn't have to fetch it. By default bazel queries your system to determine what Xcode versions are available. This can lead to [issues](https://github.com/bazelbuild/bazel/issues/6056) where you have to run a `bazel clean --expunge` to recover. If you can guarantee that all users of your bazel configuration have the same version of Xcode, you can copy the output from `cat "$(bazel info execution_root)"/external/local_config_xcode/BUILD` and check it in to your repo. This way bazel won't have to fetch this information. The downside is that your developers have to use a same Xcode version.
+
+To not lock your developers to a specific Xcode version, you might want to
+[generate your copy of `local_config_xcode`
+package](xcode_version_config/generate-xcode-version-config.sh) based on the
+currently selected Xcode prior to building with Bazel.
 
 ###### `--objc_enable_binary_stripping=true` and `--features=dead_strip`
 
