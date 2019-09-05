@@ -97,7 +97,7 @@ Forces developers to declare the environment variables / values at BUILD time. T
 
 By default, Bazel has a serial queue for generating digests for build actions (hashes for the remote cache). This flag is recommended to enable if you're building on SSDs since it will allow hashes to be constructed quicker.
 
-###### `--spawn_strategy=standalone`
+###### `--spawn_strategy=local`
 
 Disable sandboxing for all actions. This can improve build performance significantly on macOS.
 
