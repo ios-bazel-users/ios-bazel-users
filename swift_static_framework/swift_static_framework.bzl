@@ -41,11 +41,11 @@ def _zip_modulemap_arg(module_name, modulemap_file):
 
 def _modulemap_file_content(module_name):
     return """\
-framework module %s {
-  header %s-Swift.h
+framework module {module_name} {{
+  header {module_name}-Swift.h
   requires objc
-}
-""" % (module_name, module_name)
+}}
+""".format(module_name = module_name)
 
 def _swift_static_framework_impl(ctx):
     module_name = ctx.attr.module_name
