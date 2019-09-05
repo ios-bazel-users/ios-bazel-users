@@ -107,7 +107,7 @@ def _swift_static_framework_impl(ctx):
     if generated_objc_hdr_file:
         ctx.actions.write(
             output = modulemap_file,
-            content = _modulemap_file_content(module_name)
+            content = _modulemap_file_content(module_name),
         )
         zip_args.append(_zip_modulemap_arg(module_name, modulemap_file))
 
