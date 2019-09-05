@@ -89,7 +89,7 @@ The two main options right now are local or remote caches. Local caches utlize a
 
 #### General 
 
-###### `--experimental_strict_action_env`
+###### `--incompatible_strict_action_env`
 
 Forces developers to declare the environment variables / values at BUILD time. This is essential for getting cache hits since common variables like `$PATH` can differ amongst machines and will result in a cache miss.
 
@@ -111,7 +111,7 @@ Path to a directory where Bazel can read and write actions and action outputs. I
 
 > More information here: https://docs.bazel.build/versions/master/remote-caching.html
 
-###### `--remote_http_cache=http://url/to/cache/server:port`
+###### `--remote_cache=http://url/to/cache/server:port`
 
 Specify the URL / port for the remote cache server over `http`.
 
