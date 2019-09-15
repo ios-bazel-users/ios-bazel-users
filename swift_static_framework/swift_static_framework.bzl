@@ -42,7 +42,7 @@ def _zip_modulemap_arg(module_name, modulemap_file):
 def _modulemap_file_content(module_name):
     return """\
 framework module {module_name} {{
-  header {module_name}-Swift.h
+  header "{module_name}-Swift.h"
   requires objc
 }}
 """.format(module_name = module_name)
