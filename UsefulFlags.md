@@ -89,6 +89,10 @@ The two main options right now are local or remote caches. Local caches utlize a
 
 #### General 
 
+###### `BAZEL_IGNORE_SYSTEM_HEADERS_VERSIONS=1`
+
+Set this environment variable to disable generating an input file with the local include paths used by the C/C++ compilers. Without this the file contains absolute paths to Xcode, which could differ between developers and CI and therefore cause remote cache misses.
+
 ###### `--incompatible_strict_action_env`
 
 Forces developers to declare the environment variables / values at BUILD time. This is essential for getting cache hits since common variables like `$PATH` can differ amongst machines and will result in a cache miss.
