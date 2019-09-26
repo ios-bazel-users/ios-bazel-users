@@ -3,41 +3,12 @@
 load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
 load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftInfo", "swift_library")
 
-_DEFAULT_MINIMUM_OS_VERSION = "10.0"
+_DEFAULT_MINIMUM_OS_VERSION = "11.0"
 
 _PLATFORM_TO_SWIFTMODULE = {
-    "ios_armv7": "arm",
     "ios_arm64": "arm64",
-    "ios_i386": "i386",
     "ios_x86_64": "x86_64",
 }
-
-def _zip_binary_arg(module_name, input_file):
-    return "{module_name}.framework/{module_name}={file_path}".format(
-        module_name = module_name,
-        file_path = input_file.path,
-    )
-
-def _zip_swift_arg(module_name, swift_identifier, input_file):
-    return "{module_name}.framework/Modules/{module_name}.swiftmodule/{swift_identifier}.{ext}={file_path}".format(
-        module_name = module_name,
-        swift_identifier = swift_identifier,
-        ext = input_file.extension,
-        file_path = input_file.path,
-    )
-
-def _zip_generated_objc_hdr_arg(module_name, generated_objc_hdr_file):
-    # Rename the generated ObjC header to `{module_name}-Swift.h`.
-    return "{module_name}.framework/Headers/{module_name}-Swift.h={file_path}".format(
-        module_name = module_name,
-        file_path = generated_objc_hdr_file.path,
-    )
-
-def _zip_modulemap_arg(module_name, modulemap_file):
-    return "{module_name}.framework/Modules/module.modulemap={file_path}".format(
-        module_name = module_name,
-        file_path = modulemap_file.path,
-    )
 
 def _modulemap_file_content(module_name):
     return """\
@@ -51,7 +22,6 @@ def _swift_static_framework_impl(ctx):
     module_name = ctx.attr.module_name
     fat_file = ctx.outputs.fat_file
     modulemap_file = ctx.outputs.modulemap_file
-    zip_args = [_zip_binary_arg(module_name, fat_file)]
 
     libraries = []
     swift_info_files = []
@@ -68,7 +38,6 @@ def _swift_static_framework_impl(ctx):
         for objc_hdr_file in objc_provider.header.to_list():
             if objc_hdr_file.basename == generated_hdr_file_basename:
                 generated_objc_hdr_file = objc_hdr_file
-                zip_args.append(_zip_generated_objc_hdr_arg(module_name, generated_objc_hdr_file))
                 break
 
     # Get the `swiftdoc` and `swiftmodule` files for each platform.
@@ -85,13 +54,35 @@ def _swift_static_framework_impl(ctx):
         libraries.append(library)
 
         swift_info_provider = target[SwiftInfo]
-        swiftdoc = swift_info_provider.direct_swiftdocs[0]
-        swiftmodule = swift_info_provider.direct_swiftmodules[0]
-        swift_info_files += [swiftdoc, swiftmodule]
-        zip_args += [
-            _zip_swift_arg(module_name, swiftmodule_identifier, swiftdoc),
-            _zip_swift_arg(module_name, swiftmodule_identifier, swiftmodule),
-        ]
+        swiftdoc_input = swift_info_provider.direct_swiftdocs[0]
+        swiftmodule_input = swift_info_provider.direct_swiftmodules[0]
+
+        swiftdoc_output = None
+        swiftmodule_output = None
+
+        if swiftmodule_identifier == "arm64":
+            swiftdoc_output = ctx.outputs.arm64_swiftdoc
+            swiftmodule_output = ctx.outputs.arm64_swiftmodule
+        elif swiftmodule_identifier == "x86_64":
+            swiftdoc_output = ctx.outputs.x86_64_swiftdoc
+            swiftmodule_output = ctx.outputs.x86_64_swiftmodule
+
+        ctx.actions.run(
+            inputs = [swiftdoc_input],
+            outputs = [swiftdoc_output],
+            mnemonic = "CopySwiftDoc",
+            progress_message = "Copying swiftdoc for {}".format(module_name),
+            executable = "cp",
+            arguments = [swiftdoc_input.path, swiftdoc_output.path],
+        )
+        ctx.actions.run(
+            inputs = [swiftmodule_input],
+            outputs = [swiftmodule_output],
+            mnemonic = "CopySwiftModule",
+            progress_message = "Copying swiftmodule for {}".format(module_name),
+            executable = "cp",
+            arguments = [swiftmodule_input.path, swiftmodule_output.path],
+        )
 
     apple_support.run(
         ctx,
@@ -109,25 +100,27 @@ def _swift_static_framework_impl(ctx):
             output = modulemap_file,
             content = _modulemap_file_content(module_name),
         )
-        zip_args.append(_zip_modulemap_arg(module_name, modulemap_file))
 
-        input_files.append(generated_objc_hdr_file)
-        input_files.append(modulemap_file)
-
-    output_file = ctx.outputs.output_file
-
-    ctx.actions.run(
-        inputs = swift_info_files + input_files,
-        outputs = [output_file],
-        mnemonic = "CreateSwiftFrameworkZip",
-        progress_message = "Creating framework zip for {}".format(module_name),
-        executable = ctx.executable._zipper,
-        arguments = ["c", output_file.path] + zip_args,
-    )
+        ctx.actions.run(
+            inputs = [generated_objc_hdr_file],
+            outputs = [ctx.outputs.generated_header],
+            mnemonic = "CopyGeneratedHeader",
+            progress_message = "Copy Generated Header for {}".format(module_name),
+            executable = "cp",
+            arguments = [generated_objc_hdr_file.path, ctx.outputs.generated_header.path],
+        )
 
     return [
         DefaultInfo(
-            files = depset([output_file]),
+            files = depset([
+                ctx.outputs.fat_file,
+                ctx.outputs.generated_header,
+                ctx.outputs.modulemap_file,
+                ctx.outputs.arm64_swiftdoc,
+                ctx.outputs.arm64_swiftmodule,
+                ctx.outputs.x86_64_swiftdoc,
+                ctx.outputs.x86_64_swiftmodule,
+            ]),
         ),
     ]
 
@@ -145,17 +138,16 @@ _swift_static_framework = rule(
         platform_type = attr.string(
             default = str(apple_common.platform_type.ios),
         ),
-        _zipper = attr.label(
-            default = "@bazel_tools//tools/zip:zipper",
-            cfg = "host",
-            executable = True,
-        ),
     ),
     fragments = ["apple"],
     outputs = {
-        "fat_file": "%{name}.fat",
-        "modulemap_file": "module.modulemap",
-        "output_file": "%{name}.zip",
+        "fat_file": "%{module_name}.framework/%{module_name}",
+        "generated_header": "%{module_name}.framework/Headers/%{module_name}-Swift.h",
+        "modulemap_file": "%{module_name}.framework/Modules/module.modulemap",
+        "arm64_swiftdoc": "%{module_name}.framework/Modules/%{module_name}.swiftmodule/arm64.swiftdoc",
+        "arm64_swiftmodule": "%{module_name}.framework/Modules/%{module_name}.swiftmodule/arm64.swiftmodule",
+        "x86_64_swiftdoc": "%{module_name}.framework/Modules/%{module_name}.swiftmodule/x86_64.swiftdoc",
+        "x86_64_swiftmodule": "%{module_name}.framework/Modules/%{module_name}.swiftmodule/x86_64.swiftmodule",
     },
 )
 
