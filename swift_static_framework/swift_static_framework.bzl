@@ -3,12 +3,39 @@
 load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
 load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftInfo", "swift_library")
 
-_DEFAULT_MINIMUM_OS_VERSION = "11.0"
+_ALL_PLATFORMS = [
+    "arm",
+    "arm64",
+    "i386",
+    "x86_64",
+]
+
+_DEFAULT_MINIMUM_OS_VERSION = "10.0"
 
 _PLATFORM_TO_SWIFTMODULE = {
+    "ios_armv7": "arm",
     "ios_arm64": "arm64",
+    "ios_i386": "i386",
     "ios_x86_64": "x86_64",
 }
+
+def _swiftdoc_output(platform, outputs):
+    if platform == "arm":
+        return outputs.arm_swiftdoc
+    elif platform == "arm64":
+        return outputs.arm64_swiftdoc
+    elif platform == "i386":
+        return outputs.i386_swiftdoc
+    return outputs.x86_64_swiftdoc
+
+def _swiftmodule_output(platform, outputs):
+    if platform == "arm":
+        return outputs.arm_swiftmodule
+    elif platform == "arm64":
+        return outputs.arm64_swiftmodule
+    elif platform == "i386":
+        return outputs.i386_swiftmodule
+    return outputs.x86_64_swiftmodule
 
 def _modulemap_file_content(module_name):
     return """\
@@ -57,15 +84,8 @@ def _swift_static_framework_impl(ctx):
         swiftdoc_input = swift_info_provider.direct_swiftdocs[0]
         swiftmodule_input = swift_info_provider.direct_swiftmodules[0]
 
-        swiftdoc_output = None
-        swiftmodule_output = None
-
-        if swiftmodule_identifier == "arm64":
-            swiftdoc_output = ctx.outputs.arm64_swiftdoc
-            swiftmodule_output = ctx.outputs.arm64_swiftmodule
-        elif swiftmodule_identifier == "x86_64":
-            swiftdoc_output = ctx.outputs.x86_64_swiftdoc
-            swiftmodule_output = ctx.outputs.x86_64_swiftmodule
+        swiftdoc_output = _swiftdoc_output(swiftmodule_identifier, ctx.outputs)
+        swiftmodule_output = _swiftmodule_output(swiftmodule_identifier, ctx.outputs)
 
         ctx.actions.run(
             inputs = [swiftdoc_input],
@@ -82,6 +102,37 @@ def _swift_static_framework_impl(ctx):
             progress_message = "Copying swiftmodule for {}".format(module_name),
             executable = "cp",
             arguments = [swiftmodule_input.path, swiftmodule_output.path],
+        )
+
+    # Create zero-byte swiftdoc and swiftmodule files for platform that we're
+    # not building for, because we can't change the number of outputs
+    building_platforms = [
+        _PLATFORM_TO_SWIFTMODULE[x]
+        for x, _ in platform_to_target_list
+    ]
+    not_building_platforms = [
+        x for x in _ALL_PLATFORMS if x not in building_platforms
+    ]
+
+    for platform in not_building_platforms:
+        swiftdoc_output = _swiftdoc_output(platform, ctx.outputs)
+        swiftmodule_output = _swiftmodule_output(platform, ctx.outputs)
+
+        ctx.actions.run(
+            inputs = [],
+            outputs = [swiftdoc_output],
+            mnemonic = "CreateEmptySwiftDoc",
+            progress_message = "Create non-building platform swiftdoc for {}".format(module_name),
+            executable = "touch",
+            arguments = [swiftdoc_output.path],
+        )
+        ctx.actions.run(
+            inputs = [],
+            outputs = [swiftmodule_output],
+            mnemonic = "CreateEmptySwiftModule",
+            progress_message = "Create non-building platform swiftmodule for {}".format(module_name),
+            executable = "touch",
+            arguments = [swiftmodule_output.path],
         )
 
     apple_support.run(
@@ -105,7 +156,7 @@ def _swift_static_framework_impl(ctx):
             inputs = [generated_objc_hdr_file],
             outputs = [ctx.outputs.generated_header],
             mnemonic = "CopyGeneratedHeader",
-            progress_message = "Copy Generated Header for {}".format(module_name),
+            progress_message = "Copying generated header for {}".format(module_name),
             executable = "cp",
             arguments = [generated_objc_hdr_file.path, ctx.outputs.generated_header.path],
         )
@@ -116,8 +167,12 @@ def _swift_static_framework_impl(ctx):
                 ctx.outputs.fat_file,
                 ctx.outputs.generated_header,
                 ctx.outputs.modulemap_file,
+                ctx.outputs.arm_swiftdoc,
+                ctx.outputs.arm_swiftmodule,
                 ctx.outputs.arm64_swiftdoc,
                 ctx.outputs.arm64_swiftmodule,
+                ctx.outputs.i386_swiftdoc,
+                ctx.outputs.i386_swiftmodule,
                 ctx.outputs.x86_64_swiftdoc,
                 ctx.outputs.x86_64_swiftmodule,
             ]),
@@ -144,8 +199,12 @@ _swift_static_framework = rule(
         "fat_file": "%{module_name}.framework/%{module_name}",
         "generated_header": "%{module_name}.framework/Headers/%{module_name}-Swift.h",
         "modulemap_file": "%{module_name}.framework/Modules/module.modulemap",
+        "arm_swiftdoc": "%{module_name}.framework/Modules/%{module_name}.swiftmodule/arm.swiftdoc",
+        "arm_swiftmodule": "%{module_name}.framework/Modules/%{module_name}.swiftmodule/arm.swiftmodule",
         "arm64_swiftdoc": "%{module_name}.framework/Modules/%{module_name}.swiftmodule/arm64.swiftdoc",
         "arm64_swiftmodule": "%{module_name}.framework/Modules/%{module_name}.swiftmodule/arm64.swiftmodule",
+        "i386_swiftdoc": "%{module_name}.framework/Modules/%{module_name}.swiftmodule/i386.swiftdoc",
+        "i386_swiftmodule": "%{module_name}.framework/Modules/%{module_name}.swiftmodule/i386.swiftmodule",
         "x86_64_swiftdoc": "%{module_name}.framework/Modules/%{module_name}.swiftmodule/x86_64.swiftdoc",
         "x86_64_swiftmodule": "%{module_name}.framework/Modules/%{module_name}.swiftmodule/x86_64.swiftmodule",
     },
