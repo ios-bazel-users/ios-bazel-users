@@ -1,4 +1,4 @@
-Useful Xcode Knowdledge
+Useful Xcode Knowledge
 =======================
 
 Xcconfig
