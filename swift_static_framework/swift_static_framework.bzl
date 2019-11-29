@@ -183,12 +183,14 @@ def swift_static_framework(name, srcs = [], deps = [], **kwargs):
           testonly: If `True`, only testonly targets (such as tests) can depend
               on the `swift_library` target. The default is `False`.
           visibility: The visibility specifications for this target.
+          features: List of features.
     """
     module_name = kwargs.get("module_name", name)
     srcs = srcs or native.glob(["Sources/**/*.swift"])
     testonly = kwargs.get("testonly", False)
     minimum_os_version = kwargs.get("minimum_os_version", _DEFAULT_MINIMUM_OS_VERSION)
     visibility = kwargs.get("visibility")
+    features = kwargs.get("features")
 
     swift_library(
         name = name,
@@ -198,6 +200,7 @@ def swift_static_framework(name, srcs = [], deps = [], **kwargs):
         module_name = module_name,
         visibility = visibility,
         deps = deps,
+        features = features,
     )
 
     _swift_static_framework(
