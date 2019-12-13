@@ -93,9 +93,9 @@ The two main options right now are local or remote caches. Local caches utlize a
 
 Set this environment variable to disable generating an input file with the local include paths used by the C/C++ compilers. Without this the file contains absolute paths to Xcode, which could differ between developers and CI and therefore cause remote cache misses.
 
-###### `--incompatible_strict_action_env`
+###### `PATH=/usr/bin:/bin`
 
-Forces developers to declare the environment variables / values at BUILD time. This is essential for getting cache hits since common variables like `$PATH` can differ amongst machines and will result in a cache miss.
+Setting `PATH` to something consistent when you execute bazel has proven to be almost a requirement to ensure valid cache hits. Using `--incompatible_strict_action_env` does this too but it also includes `/usr/local/bin` which has been found to cause issues for us with users' homebrew environments https://github.com/bazelbuild/bazel/issues/10187.
 
 ###### `--experimental_multi_threaded_digest`
 
