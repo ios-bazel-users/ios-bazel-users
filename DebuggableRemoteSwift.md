@@ -42,7 +42,7 @@ In the `BUILD` file of your choice, define a `swift_library` with:
 
 * A single empty source file
 * Enables `-serialize-debugging-options`
-* Tagged with `no-remote`
+* Built locally, not remote using the `no-remote` tag
 
 Here is one way to define the `BUILD` file, using a [`genrule`](https://docs.bazel.build/versions/master/be/general.html#genrule) to create the empty swift file.
 
