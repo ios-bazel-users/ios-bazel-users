@@ -78,10 +78,10 @@ debug_deps = select({
 
 ios_application(
     name = "...",
-    # ...
     deps = debug_deps + [
         # ...
     ],
+    # ...
 )
 ```
 
