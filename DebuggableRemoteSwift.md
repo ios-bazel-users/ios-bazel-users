@@ -11,14 +11,17 @@ The solution is two parts:
 
 Globally disabling debugging options makes those `.swiftmodule`s usable on any machine. Locally enabling debugging options for one module provides lldb with enough info to make debugging work.
 
+An lldb bug has been filed here: https://bugs.swift.org/browse/SR-11485
+
 ### Disable Debugging Options Globally
 
 To globally disable debugging options, use the `swift.cacheable_swiftmodules` feature in rules_swift. For example, your `.bazelrc` could look like this:
 
 ```
 build --features=swift.cacheable_swiftmodules
-
 ```
+
+What this does is ensure all modules are built explicitly with `-no-serialize-debugging-options`. It has to be explicit because `swiftc` enables `-serialize-debugging-options` in some cases.
 
 ### Add Debug Build Config
 
