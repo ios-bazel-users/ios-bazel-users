@@ -66,7 +66,7 @@ swift_library(
 )
 ```
 
-### Update Top Level Targets Conditionally Depend
+### Update Top Level Targets
 
 Finally, for each top-level target (`ios_application`, `ios_unit_test`*, etc), conditionally add the local debugging module to the deps. This is done via the [debug config](#add-debug-build-config).
 
