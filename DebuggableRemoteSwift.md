@@ -2,7 +2,7 @@
 
 This is a guide to using remotely built Swift modules in local debug builds.
 
-At the time of writing, lldb depends on debugging options embedded in `.swiftmodule` files. These options include paths that are only valid on the build host. For local builds, this all just works, but for remote builds, it doesn't.
+At the time of writing, `lldb` depends on debugging options embedded in `.swiftmodule` files. These options include paths that are only valid on the build host. For local builds, this all just works, but for remote builds, it doesn't.
 
 The solution is two parts:
 
