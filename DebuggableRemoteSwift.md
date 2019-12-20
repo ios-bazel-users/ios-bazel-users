@@ -88,3 +88,31 @@ ios_application(
 ##### Note about `ios_unit_test`
 
 When using a test host, the debugging module must be added to the test host target only, not the unit test target. _However_, for tests without a test host, the debugging module must be added to the unit test target.
+
+### LLDB Settings
+
+Additional settings may be required, depending on your build setup. For example, an Xcode Run Script may look like:
+
+```
+echo "settings set target.sdk-path $SDKROOT"
+echo "settings set target.swift-framework-search-paths $FRAMEWORK_SEARCH_PATHS"
+```
+
+Other settings you can try customizing are:
+
+* `target.clang-module-search-paths`
+* `target.debug-file-search-paths`
+* `target.sdk-path`
+* `target.swift-extra-clang-flags`
+* `target.swift-framework-search-paths`
+* `target.swift-module-search-paths`
+* `target.use-all-compiler-flags`
+* `symbols.clang-modules-cache-path`
+
+These settings would be written to some project specific lldbinit file. The user's main `~/.lldbinit` file needs to be modified to include the generated settings:
+
+```
+command source /path/to/project/specific/lldbinit
+```
+
+If the path does not exist, lldb ignores it.
