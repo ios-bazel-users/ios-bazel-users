@@ -154,7 +154,7 @@ _swift_static_framework = rule(
     fragments = ["apple"],
     outputs = {
         "fat_file": "%{name}.fat",
-        "modulemap_file": "module.modulemap",
+        "modulemap_file": "%{name}.modulemap",
         "output_file": "%{name}.zip",
     },
 )
