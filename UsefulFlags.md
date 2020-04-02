@@ -105,6 +105,10 @@ By default, Bazel has a serial queue for generating digests for build actions (h
 
 Disable sandboxing for all actions. This can improve build performance significantly on macOS.
 
+###### `--experimental_repository_resolved_file=resolved.bzl`
+
+If provided, it records in the specified file all the repository rules that where actually executed, together with their arguments and return values.
+
 #### Local
 
 ###### `--disk_cache=/path/to/disk/cache`
