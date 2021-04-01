@@ -20,7 +20,7 @@ Keep the sandbox directory (`/var/tmp/_bazel_$USER/*/sandbox/darwin-sandbox/*`) 
 
 Print jobs run by the `clang` and `swiftc` drivers respectively. For example this will show compiler frontend invocations, linker invocations, etc.
 
-###### `--experimental_generate_json_trace_profile`
+###### `--generate_json_trace_profile`
 
 Run `bazel build` with this flag to generate a Chrome compatible trace file that can be used to visually introspect the build's timing, sequencing, and parallelism. This flag requires the use of `--profile=<path>`, for example:
 
